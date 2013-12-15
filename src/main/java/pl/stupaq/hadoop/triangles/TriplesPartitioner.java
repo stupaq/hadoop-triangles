@@ -1,12 +1,11 @@
-package pl.stupaq.hadoop.triangles.join3;
+package pl.stupaq.hadoop.triangles;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Partitioner;
 
-import pl.stupaq.hadoop.triangles.Tuple;
-
-class Join3Partitioner extends Partitioner<Tuple, Tuple> implements Configurable {
+public class TriplesPartitioner extends Partitioner<Tuple, Tuple> implements Configurable {
+  public static final String ELEMENT_RANGE_KEY = "partitioner.triples.element.range";
   private Configuration conf;
   private int buckets;
 
@@ -25,7 +24,7 @@ class Join3Partitioner extends Partitioner<Tuple, Tuple> implements Configurable
   @Override
   public void setConf(Configuration conf) {
     this.conf = conf;
-    buckets = conf.getInt(Join3.BUCKETS_KEY, -1);
-    assert buckets > 0 : "Bad buckets count";
+    buckets = conf.getInt(ELEMENT_RANGE_KEY, -1);
+    assert buckets > 0 : "Bad element range";
   }
 }

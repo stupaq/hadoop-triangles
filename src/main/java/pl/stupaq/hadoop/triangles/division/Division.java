@@ -1,4 +1,4 @@
-package pl.stupaq.hadoop.triangles.join3;
+package pl.stupaq.hadoop.triangles.division;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -17,16 +17,17 @@ import pl.stupaq.hadoop.triangles.Tuple;
 
 import java.util.Arrays;
 
-// Cyclic three-way join, communication cost Omega(|E| * 3 * buckets)
-public class Join3 implements Tool {
-  static final String BUCKETS_KEY = "triangles.join3.buckets";
+// Partition vertices into groups and create reducer for each 3-element subset of groups,
+// communication cost Omeg(|E| * 3/2 * buckets)
+public class Division implements Tool {
+  static final String BUCKETS_KEY = "triangles.division.buckets";
   private Configuration conf;
 
   public static void main(String[] args) throws Exception {
     try {
       Configuration conf = new Configuration();
       String[] remainingArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-      ToolRunner.run(conf, new Join3(), remainingArgs);
+      ToolRunner.run(conf, new Division(), remainingArgs);
     } catch (Throwable t) {
       System.err.println(StringUtils.stringifyException(t));
       throw t;
@@ -45,19 +46,19 @@ public class Join3 implements Tool {
 
     // Setup job
     Job job = Job.getInstance(conf);
-    job.setJarByClass(Join3.class);
+    job.setJarByClass(Division.class);
 
     job.setInputFormatClass(TextInputFormat.class);
     TextInputFormat.addInputPath(job, inputPath);
-    job.setMapperClass(Join3Mapper.class);
+    job.setMapperClass(DivisionMapper.class);
 
     job.setMapOutputKeyClass(Tuple.class);
     job.setMapOutputValueClass(Tuple.class);
 
     job.setPartitionerClass(TriplesPartitioner.class);
 
-    job.setReducerClass(Join3Reducer.class);
-    job.setNumReduceTasks(buckets * buckets * buckets);
+    job.setReducerClass(DivisionReducer.class);
+    job.setNumReduceTasks(buckets * (buckets - 1) * (buckets - 2) / 6);
 
     job.setOutputKeyClass(NullWritable.class);
     job.setOutputValueClass(Text.class);
