@@ -70,9 +70,9 @@ public class Tuple extends ArrayList<Integer> implements Writable, WritableCompa
     remove(size() - 1);
   }
 
-  @SuppressWarnings("unused")
-  public void append(Tuple tuple) {
+  public Tuple appendInPlace(Tuple tuple) {
     addAll(tuple);
+    return this;
   }
 
   @Override
@@ -131,5 +131,17 @@ public class Tuple extends ArrayList<Integer> implements Writable, WritableCompa
       }
     }
     return other.size() - size();
+  }
+
+  public int _0() {
+    return get(0);
+  }
+
+  public int _1() {
+    return get(1);
+  }
+
+  public int _2() {
+    return get(2);
   }
 }

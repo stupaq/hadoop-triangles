@@ -6,15 +6,15 @@ import org.apache.hadoop.mapreduce.Partitioner;
 
 import pl.stupaq.hadoop.triangles.Tuple;
 
-public class Join3Partitioner extends Partitioner<Tuple, Tuple> implements Configurable {
+class Join3Partitioner extends Partitioner<Tuple, Tuple> implements Configurable {
   private Configuration conf;
   private int buckets;
 
   @Override
   public int getPartition(Tuple key, Tuple value, int reducersCount) {
     // This ensures that in case reducersCount == buckets^3 then we get perfect
-    // distribution of keys. This is the default case if one uses Join3 job controller.
-    return ((key.get(0) * buckets + key.get(1)) * buckets + key.get(2)) % reducersCount;
+    // distribution of keys.
+    return ((key._0() * buckets + key._1()) * buckets + key._2()) % reducersCount;
   }
 
   @Override

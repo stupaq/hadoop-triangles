@@ -8,10 +8,10 @@ import org.apache.hadoop.mapreduce.Reducer;
 import pl.stupaq.hadoop.triangles.Tuple;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-public class Join3Reducer extends Reducer<Tuple, Tuple, NullWritable, Text> {
+class Join3Reducer extends Reducer<Tuple, Tuple, NullWritable, Text> {
   protected int buckets;
 
   @Override
@@ -24,21 +24,27 @@ public class Join3Reducer extends Reducer<Tuple, Tuple, NullWritable, Text> {
   @Override
   protected void reduce(Tuple key, Iterable<Tuple> values, Context context)
       throws IOException, InterruptedException {
-    List<Tuple> edges = new ArrayList<>();
+    Set<Tuple> edges = new HashSet<>();
     for (Tuple e : values) {
       edges.add(new Tuple(e));
     }
     // We know that for each input edge (a, b) a < b
+    int ha = key._0(), hb = key._1(), hc = key._2();
     for (Tuple e1 : edges) {
+      if (ha != e1._0() % buckets) {
+        continue;
+      }
       for (Tuple e2 : edges) {
-        if (!e1.get(1).equals(e2.get(0))) {
+        if (hb != e2._0() % buckets || e1._1() != e2._0()) {
           continue;
         }
         for (Tuple e3 : edges) {
-          if (!e2.get(1).equals(e3.get(1)) || !e1.get(0).equals(e3.get(0))) {
+          if (hc != e3._1() % buckets || e2._1() != e3._1() || e1._0() != e3._0()) {
             continue;
           }
-          context.write(NullWritable.get(), new Tuple(e1.get(0), e2.get(0), e3.get(1)).toText());
+          Tuple triangle = new Tuple(e1._0(), e2._0(), e3._1());
+          System.out.println(key + " -> " + triangle);
+          context.write(NullWritable.get(), triangle.toText());
         }
       }
     }

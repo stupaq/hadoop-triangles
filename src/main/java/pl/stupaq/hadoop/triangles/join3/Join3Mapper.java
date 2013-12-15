@@ -9,7 +9,7 @@ import pl.stupaq.hadoop.triangles.Tuple;
 
 import java.io.IOException;
 
-public class Join3Mapper extends Mapper<LongWritable, Text, Tuple, Tuple> {
+class Join3Mapper extends Mapper<LongWritable, Text, Tuple, Tuple> {
   protected int buckets;
 
   @Override
@@ -25,22 +25,26 @@ public class Join3Mapper extends Mapper<LongWritable, Text, Tuple, Tuple> {
     // Parse an edge
     Tuple edge = new Tuple();
     edge.fromText(value);
-    // We want to compute E(x, y) x E(y, z) x E(x, z), the edge we have just read can be one of
-    // the following:
-    int ha = edge.get(0) % buckets, hb = edge.get(1) % buckets;
     // We assume that each edge is specified in input file by a pair of endpoints (a, b) where a < b
-    assert edge.get(0) < edge.get(1) : "Invalid input format";
+    assert edge._0() < edge._1() : "Invalid input format";
+    int ha = edge._0() % buckets, hb = edge._1() % buckets;
+    // We want to compute E(x, y) x E(y, z) x E(x, z), the edge we have just read can be one of
+    // the following in above join:
     // E(x, y)
     for (int hi = 0; hi < buckets; hi++) {
-      context.write(new Tuple(ha, hb, hi), edge);
+      if (hi != hb) {
+        context.write(new Tuple(ha, hb, hi), new Tuple(edge));
+      }
     }
     // E(y, z)
     for (int hi = 0; hi < buckets; hi++) {
-      context.write(new Tuple(ha, hi, hb), edge);
+      if (hi != ha) {
+        context.write(new Tuple(hi, ha, hb), new Tuple(edge));
+      }
     }
     // E(x, z)
     for (int hi = 0; hi < buckets; hi++) {
-      context.write(new Tuple(hi, ha, hb), edge);
+      context.write(new Tuple(ha, hi, hb), new Tuple(edge));
     }
   }
 }
