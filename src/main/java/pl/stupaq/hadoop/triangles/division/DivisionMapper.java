@@ -8,7 +8,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 import pl.stupaq.hadoop.triangles.Tuple;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashSet;
 
 class DivisionMapper extends Mapper<LongWritable, Text, Tuple, Tuple> {
@@ -31,11 +30,12 @@ class DivisionMapper extends Mapper<LongWritable, Text, Tuple, Tuple> {
     assert edge._0() < edge._1() : "Invalid input format";
     int ha = edge._0() % buckets, hb = edge._1() % buckets;
     for (int hi = 0; hi < buckets; hi++) {
-      for (int hj = hi + 1; hj < buckets; hj++) {
-        for (int hk = hj + 1; hk < buckets; hk++) {
-          HashSet<Integer> set = new HashSet<>(Arrays.asList(hi, hj, hk));
+      for (int hj = hi; hj < buckets; hj++) {
+        for (int hk = hj; hk < buckets; hk++) {
+          Tuple key = new Tuple(hi, hj, hk);
+          HashSet<Integer> set = new HashSet<>(key);
           if (set.contains(ha) && set.contains(hb)) {
-            context.write(new Tuple(hi, hj, hk), new Tuple(edge));
+            context.write(key, new Tuple(edge));
           }
         }
       }

@@ -8,6 +8,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import pl.stupaq.hadoop.triangles.Tuple;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,20 +30,22 @@ class DivisionReducer extends Reducer<Tuple, Tuple, NullWritable, Text> {
       edges.add(new Tuple(e));
     }
     // We know that for each input edge (a, b) a < b
-    int ha = key._0(), hb = key._1(), hc = key._2();
     for (Tuple e1 : edges) {
-      if (ha != e1._0() % buckets) {
-        continue;
-      }
       for (Tuple e2 : edges) {
-        if (hb != e2._0() % buckets || e1._1() != e2._0()) {
+        if (e1._1() != e2._0()) {
           continue;
         }
         for (Tuple e3 : edges) {
-          if (hc != e3._1() % buckets || e2._1() != e3._1() || e1._0() != e3._0()) {
+          if (e2._1() != e3._1() || e1._0() != e3._0()) {
             continue;
           }
           Tuple triangle = new Tuple(e1._0(), e2._0(), e3._1());
+          // This is how we deal with triangles duplication:
+          Tuple hashes = new Tuple(e1._0() % buckets, e2._0() % buckets, e3._1() % buckets);
+          Collections.sort(hashes);
+          if (!key.equals(hashes)) {
+            continue;
+          }
           System.out.println(key + " -> " + triangle);
           context.write(NullWritable.get(), triangle.toText());
         }

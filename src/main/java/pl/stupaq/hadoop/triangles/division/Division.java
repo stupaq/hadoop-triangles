@@ -58,7 +58,7 @@ public class Division implements Tool {
     job.setPartitionerClass(TriplesPartitioner.class);
 
     job.setReducerClass(DivisionReducer.class);
-    job.setNumReduceTasks(buckets * (buckets - 1) * (buckets - 2) / 6);
+    job.setNumReduceTasks(buckets * buckets * buckets / 6);
 
     job.setOutputKeyClass(NullWritable.class);
     job.setOutputValueClass(Text.class);
