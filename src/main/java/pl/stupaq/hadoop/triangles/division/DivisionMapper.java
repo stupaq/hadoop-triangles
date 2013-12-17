@@ -29,6 +29,8 @@ class DivisionMapper extends Mapper<LongWritable, Text, Tuple, Tuple> {
     // We assume that each edge is specified in input file by a pair of endpoints (a, b) where a < b
     assert edge._0() < edge._1() : "Invalid input format";
     int ha = edge._0() % buckets, hb = edge._1() % buckets;
+    // We need extra singletons and doublets due to the way we avoid duplication in reducers,
+    // this does not change communication cost significantly.
     for (int hi = 0; hi < buckets; hi++) {
       for (int hj = hi; hj < buckets; hj++) {
         for (int hk = hj; hk < buckets; hk++) {

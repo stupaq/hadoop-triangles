@@ -14,11 +14,20 @@ import org.apache.hadoop.util.ToolRunner;
 
 import pl.stupaq.hadoop.triangles.TriplesPartitioner;
 import pl.stupaq.hadoop.triangles.Tuple;
+import pl.stupaq.hadoop.triangles.join3.Join3;
 
 import java.util.Arrays;
 
-// Partition vertices into groups and create reducer for each 3-element subset of groups,
-// communication cost Omeg(|E| * 3/2 * buckets)
+/**
+ * Partition vertices into groups and create reducer for each 3-element subset of groups, let B be
+ * cardinality of the image of our hash function (the one that we use to partition vertices). We
+ * expect 1/B of edges to have both ends in the very same group i-th. This edge needs to be sent to
+ * (B-1)*(B-2)/2+(B-1)+1 reducers (all subsets of three or less vertices that include i). Conversely
+ * we expect (B-1)/B of edges to have endpoints in i-th and j-th groups respectively, where i != j.
+ * Each of them will be sent to (B-2) reducers. Therefore our EXPECTED (not pessimistic!) cost of
+ * communication is no greater than 3/2*|E|*B. This algorithm is better than {@link Join3} when
+ * comparing expected costs.
+ */
 public class Division implements Tool {
   static final String BUCKETS_KEY = "triangles.division.buckets";
   private Configuration conf;

@@ -17,7 +17,12 @@ import pl.stupaq.hadoop.triangles.Tuple;
 
 import java.util.Arrays;
 
-// Cyclic three-way join, communication cost Omega(|E| * 3 * buckets)
+/**
+ * Cyclic three-way join, let B be cardinality of the image of our hash function (the one that we
+ * use to hash vertices). As seen in {@link Join3Mapper}, each edge is replicated to 3*B-2 different
+ * reducers, therefore communication cost of the algorithm is |E|*(3*B-2). This algorithm is worse
+ * than {@link Join3} when comparing expected costs.
+ */
 public class Join3 implements Tool {
   static final String BUCKETS_KEY = "triangles.join3.buckets";
   private Configuration conf;
